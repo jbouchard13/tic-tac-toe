@@ -4,6 +4,7 @@ body {
   align-items: center;
   font-family: "Courier New", Courier, monospace;
   color: #feefe5;
+  background-color: #253237;
 }
 
 .board-container {
@@ -15,19 +16,54 @@ body {
   grid-gap: 5px;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
-  background-color: #ffcf00;
+  background-color: #fae8eb;
   border-radius: 10px;
-  border: 2px solid #ee6123;
+  border: 8px ridge #fae8eb;
 }
 
 .box {
-  background-color: #00916e;
+  border: 2px ridge #06bee1;
   font-size: 50px;
   padding: 50px;
   text-align: center;
   border-radius: 5px;
+  transition: opacity 0.25s, background-color 0.25s;
 }
 
 .box:hover {
   opacity: 75%;
+}
+
+@keyframes error {
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(10deg);
+  }
+  40% {
+    transform: rotate(-8deg);
+  }
+  60% {
+    transform: rotate(6deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.wiggle-box {
+  animation-name: error;
+  animation-duration: 0.35s;
+}
+
+.one-box {
+  background-color: #5aff15;
+}
+
+.two-box {
+  background-color: #9d75cb;
 }
