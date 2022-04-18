@@ -11,8 +11,7 @@ const GameBoard = (() => {
   // GameBoard will handle creating, and updating the display
   // will need to take info from the player and controller
   let tiles = [];
-  let turns = 0;
-  let draw = false;
+
   for (let i = 1; i <= 9; i++) {
     tiles.push({
       color: "#06bee1",
@@ -96,7 +95,7 @@ const GameBoard = (() => {
 
   // display draw
   const displayDraw = () => {
-    draw = true;
+    Controller.draw = true;
     currentTurnEl.textContent = "The game ended in a draw!";
   };
   // reset game
@@ -116,13 +115,12 @@ const GameBoard = (() => {
       tileEl.addEventListener("click", (e) => {
         const playerOne = Controller.playersArr[0];
         const playerTwo = Controller.playersArr[1];
-        console.log(playerOne.details.win);
 
         // check if a player has won, or if there's a draw if so, don't let any tiles change
         if (
           playerOne.details.win === true ||
           playerTwo.details.win === true ||
-          draw === true
+          Controller.draw === true
         ) {
           return;
         }
@@ -143,10 +141,9 @@ const GameBoard = (() => {
           // set the tile to that player's color, and change turn to the other player
           updateTileColor(tileEl, playerOne.details.color);
           // check if a draw has occurred
-          turns++;
-          if (checkDraw(turns, playerOne, playerTwo) === true) {
+          Controller.turns++;
+          if (checkDraw(Controller.turns, playerOne, playerTwo) === true) {
             displayDraw();
-            console.log(draw);
             return;
           }
           Controller.setTurn(playerTwo.details.name);
@@ -170,10 +167,9 @@ const GameBoard = (() => {
           // set the tile to that player's color, and change turn to the other player
           updateTileColor(tileEl, playerTwo.details.color);
           // check if a draw has occurred
-          turns++;
-          if (checkDraw(turns, playerOne, playerTwo) === true) {
+          Controller.turns++;
+          if (checkDraw(Controller.turns, playerOne, playerTwo) === true) {
             displayDraw();
-            console.log(draw);
             return;
           }
           Controller.setTurn(playerOne.details.name);
@@ -213,6 +209,9 @@ const GameBoard = (() => {
 const Controller = (() => {
   // create an array to contain players
   const playersArr = [];
+  // create variables to contain the amount of turns taken to handle draw scenarios
+  let turns = 0;
+  let draw = false;
 
   // array of combinations to win
   const winConditions = [
@@ -257,7 +256,7 @@ const Controller = (() => {
     return result;
   };
 
-  return { checkWin, setTurn, currentTurn, playersArr };
+  return { checkWin, setTurn, currentTurn, playersArr, turns, draw };
 })();
 
 // create a factory for player objects
