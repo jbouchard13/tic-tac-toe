@@ -2,13 +2,17 @@
 const GameBoard = (() => {
   // set default board color to a variable
   const defaultColor = "#06bee1";
-  // set variable for start button, setup, and board containers
+  // set variable for start button, setup, current turn, and board containers
   const boardContainerEl = document.querySelector(".board-container");
   const startBtnEl = document.querySelector(".start");
   const setUpEl = document.querySelector(".setup-container");
+  const currentTurnEl = document.querySelector(".current-turn");
+  const winnerEl = document.querySelector(".winner");
   // GameBoard will handle creating, and updating the display
   // will need to take info from the player and controller
   let tiles = [];
+  let turns = 0;
+  let draw = false;
   for (let i = 1; i <= 9; i++) {
     tiles.push({
       color: "#06bee1",
@@ -26,6 +30,7 @@ const GameBoard = (() => {
   };
   // hide the board on page load
   hideElement(boardContainerEl);
+  hideElement(currentTurnEl);
   // create new players
   startBtnEl.addEventListener("click", () => {
     // create new players from the input form
@@ -45,9 +50,11 @@ const GameBoard = (() => {
     // close the set up window and display the gameboard
     hideElement(setUpEl);
     showElement(boardContainerEl, "grid");
+    showElement(currentTurnEl, "block");
 
     // set the turn to the first player
     Controller.setTurn(Controller.playersArr[0].details.name);
+    updateTurn(Controller.playersArr[0].details.name);
   });
 
   // handles removing animations from tiles, takes element, animation, and time in ms
@@ -63,9 +70,36 @@ const GameBoard = (() => {
     element.dataset.played = "yes";
   };
 
-  const returnTileID = (element) => {
-    return element.id;
+  // update displayed turn
+  const updateTurn = (name) => {
+    currentTurnEl.textContent = `${name}'s turn`;
   };
+
+  // display winner
+  const displayWinner = (name) => {
+    winnerEl.textContent = `${name} has won!`;
+    hideElement(currentTurnEl);
+  };
+
+  // check for draw
+  const checkDraw = (tiles, playerOne, playerTwo) => {
+    if (
+      tiles === 9 &&
+      playerOne.details.win === false &&
+      playerTwo.details.win === false
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  // display draw
+  const displayDraw = () => {
+    draw = true;
+    currentTurnEl.textContent = "The game ended in a draw!";
+  };
+  // reset game
 
   // create the tiles and append them to the page
   const createBoard = () => {
@@ -82,13 +116,16 @@ const GameBoard = (() => {
       tileEl.addEventListener("click", (e) => {
         const playerOne = Controller.playersArr[0];
         const playerTwo = Controller.playersArr[1];
+        console.log(playerOne.details.win);
 
-        // check if a player has won, if so, don't let any tiles change
-        if (playerOne.details.win === true || playerTwo.details.win === true) {
-          console.log("somebody won");
+        // check if a player has won, or if there's a draw if so, don't let any tiles change
+        if (
+          playerOne.details.win === true ||
+          playerTwo.details.win === true ||
+          draw === true
+        ) {
           return;
         }
-
         // handle animation on box tiles
         tileEl.classList.add("wiggle-box");
 
@@ -105,7 +142,16 @@ const GameBoard = (() => {
         else if (Controller.currentTurn === playerOne.details.name) {
           // set the tile to that player's color, and change turn to the other player
           updateTileColor(tileEl, playerOne.details.color);
+          // check if a draw has occurred
+          turns++;
+          if (checkDraw(turns, playerOne, playerTwo) === true) {
+            displayDraw();
+            console.log(draw);
+            return;
+          }
           Controller.setTurn(playerTwo.details.name);
+          // update the displayed turn
+          updateTurn(playerTwo.details.name);
           // return the tile ID to the controller so it can be added to the player's tile array
           playerOne.addTile(parseInt(tileEl.id));
 
@@ -113,8 +159,9 @@ const GameBoard = (() => {
           if (Controller.checkWin(playerOne.details.tiles) === true) {
             // update the player's win status
             playerOne.updateWin();
-            // end game
             // display winner
+            displayWinner(playerOne.details.name);
+            // end game
           }
         }
 
@@ -122,7 +169,17 @@ const GameBoard = (() => {
         else if (Controller.currentTurn === playerTwo.details.name) {
           // set the tile to that player's color, and change turn to the other player
           updateTileColor(tileEl, playerTwo.details.color);
+          // check if a draw has occurred
+          turns++;
+          if (checkDraw(turns, playerOne, playerTwo) === true) {
+            displayDraw();
+            console.log(draw);
+            return;
+          }
           Controller.setTurn(playerOne.details.name);
+
+          // update the displayed turn
+          updateTurn(playerOne.details.name);
           // return the tile ID to the controller so it can be added to the player's tile array
           playerTwo.addTile(parseInt(tileEl.id));
 
@@ -130,8 +187,9 @@ const GameBoard = (() => {
           if (Controller.checkWin(playerTwo.details.tiles) === true) {
             // update the player's win status
             playerTwo.updateWin();
-            // end game
             // display winner
+            displayWinner(playerTwo.details.name);
+            // end game
           }
         }
       });
@@ -171,7 +229,7 @@ const Controller = (() => {
     [3, 5, 7],
   ];
 
-  let currentTurn = "playerOne";
+  let currentTurn = "";
   // control which player is choosing
   const setTurn = (playerName) => {
     Controller.currentTurn = playerName;
