@@ -10,19 +10,20 @@
   <body>
     <div class="setup-container">
       <p>Select a game mode</p>
-      <select>
-        <option>Solo Play</option>
+      <select class="game-type">
         <option>Two Player</option>
+        <option>Solo Play</option>
       </select>
       <p>Enter names and colors</p>
       <div class="p1">
-        <input type="text" id="playerOne" placeholder="Player One" />
+        <input type="text" id="playerOne" value="Player One" />
         <input type="color" id="playerOneColor" value="#5aff15" />
       </div>
       <div class="p2">
-        <input type="text" id="playerTwo" placeholder="Player Two" />
+        <input type="text" id="playerTwo" value="Player Two" />
         <input type="color" id="playerTwoColor" value="#9d75cb" />
       </div>
+      <button class="start">Start</button>
     </div>
     <div class="board-container"></div>
     <script src="script.js"></script>

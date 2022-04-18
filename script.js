@@ -1,5 +1,11 @@
 // create a module for the gameboard
 const GameBoard = (() => {
+  // set default board color to a variable
+  const defaultColor = "#06bee1";
+  // set variable for start button, setup, and board containers
+  const boardContainerEl = document.querySelector(".board-container");
+  const startBtnEl = document.querySelector(".start");
+  const setUpEl = document.querySelector(".setup-container");
   // GameBoard will handle creating, and updating the display
   // will need to take info from the player and controller
   let tiles = [];
@@ -10,6 +16,40 @@ const GameBoard = (() => {
       id: i,
     });
   }
+
+  const hideElement = (element) => {
+    element.style.display = "none";
+  };
+
+  const showElement = (element, displayType) => {
+    element.style.display = displayType;
+  };
+  // hide the board on page load
+  hideElement(boardContainerEl);
+  // create new players
+  startBtnEl.addEventListener("click", () => {
+    // create new players from the input form
+    const playerOne = Player(
+      document.querySelector("#playerOne").value,
+      document.querySelector("#playerOneColor").value
+    );
+
+    const playerTwo = Player(
+      document.querySelector("#playerTwo").value,
+      document.querySelector("#playerTwoColor").value
+    );
+
+    // push those players to the Controller to handle gameplay
+    Controller.playersArr.push(playerOne, playerTwo);
+
+    // close the set up window and display the gameboard
+    hideElement(setUpEl);
+    showElement(boardContainerEl, "grid");
+
+    // set the turn to the first player
+    Controller.setTurn(Controller.playersArr[0].details.name);
+  });
+
   // handles removing animations from tiles, takes element, animation, and time in ms
   const removeTileAnimation = (element, animation, time) => {
     setTimeout(() => {
@@ -17,30 +57,90 @@ const GameBoard = (() => {
     }, time);
   };
 
+  // update tile color to the current player's chosen color
+  const updateTileColor = (element, color) => {
+    element.style.backgroundColor = color;
+    element.dataset.played = "yes";
+  };
+
+  const returnTileID = (element) => {
+    return element.id;
+  };
+
   // create the tiles and append them to the page
   const createBoard = () => {
     const boardContainer = document.querySelector(".board-container");
     tiles.forEach((tile) => {
       const tileEl = document.createElement("div");
-
       // add box styling, unique id, color, and data-id to handle gameplay
       tileEl.classList.add(tile.class);
+      tileEl.style.backgroundColor = defaultColor;
       tileEl.setAttribute("id", tile.id);
-      tileEl.dataset.boxNumber = tile.id;
-      tileEl.dataset.color = tile.color.name;
+      tileEl.dataset.played = "no";
 
       // add click even that will fire off the animation to the tiles
       tileEl.addEventListener("click", (e) => {
+        const playerOne = Controller.playersArr[0];
+        const playerTwo = Controller.playersArr[1];
+
+        // check if a player has won, if so, don't let any tiles change
+        if (playerOne.details.win === true || playerTwo.details.win === true) {
+          console.log("somebody won");
+          return;
+        }
+
         // handle animation on box tiles
         tileEl.classList.add("wiggle-box");
 
         // remove animation once it finished firing
         removeTileAnimation(tileEl, "wiggle-box", 350);
+
+        // update the tile color with the correct color for player
+        // check if the tile has been played yet
+        if (tileEl.dataset.played === "yes") {
+          return;
+        }
+
+        // if player one's turn, push the tile to their array
+        else if (Controller.currentTurn === playerOne.details.name) {
+          // set the tile to that player's color, and change turn to the other player
+          updateTileColor(tileEl, playerOne.details.color);
+          Controller.setTurn(playerTwo.details.name);
+          // return the tile ID to the controller so it can be added to the player's tile array
+          playerOne.addTile(parseInt(tileEl.id));
+
+          // check the player's tiles against the win conditions
+          if (Controller.checkWin(playerOne.details.tiles) === true) {
+            // update the player's win status
+            playerOne.updateWin();
+            // end game
+            // display winner
+          }
+        }
+
+        // if player two turn, push the tile to their array
+        else if (Controller.currentTurn === playerTwo.details.name) {
+          // set the tile to that player's color, and change turn to the other player
+          updateTileColor(tileEl, playerTwo.details.color);
+          Controller.setTurn(playerOne.details.name);
+          // return the tile ID to the controller so it can be added to the player's tile array
+          playerTwo.addTile(parseInt(tileEl.id));
+
+          // check the player's tiles against the win conditions
+          if (Controller.checkWin(playerTwo.details.tiles) === true) {
+            // update the player's win status
+            playerTwo.updateWin();
+            // end game
+            // display winner
+          }
+        }
       });
 
       boardContainer.append(tileEl);
     });
   };
+
+  // update the board when clicked
   // clear the board
   const clearBoard = () => {
     // reset the color of each tile
@@ -53,8 +153,11 @@ const GameBoard = (() => {
 
 // create a module for game controls
 const Controller = (() => {
+  // create an array to contain players
+  const playersArr = [];
+
+  // array of combinations to win
   const winConditions = [
-    // array of combinations to win
     // rows
     [1, 2, 3],
     [4, 5, 6],
@@ -68,7 +171,11 @@ const Controller = (() => {
     [3, 5, 7],
   ];
 
-  let turn = "";
+  let currentTurn = "playerOne";
+  // control which player is choosing
+  const setTurn = (playerName) => {
+    Controller.currentTurn = playerName;
+  };
 
   // handles checking each individual win condition and returns a boolean
   const checkOneCondition = (playerTiles, oneWinCondition) => {
@@ -79,20 +186,20 @@ const Controller = (() => {
   // runs at the end of each turn
   const checkWin = (playerTiles) => {
     // default the result to no win
-    let result = "no win";
+    let result = false;
 
     // check each win condition
     winConditions.forEach((win) => {
       let check = checkOneCondition(playerTiles, win);
       if (check === true) {
-        result = "win";
+        result = true;
         return;
       }
     });
     return result;
   };
 
-  return { checkWin };
+  return { checkWin, setTurn, currentTurn, playersArr };
 })();
 
 // create a factory for player objects
@@ -102,6 +209,11 @@ const Player = (name, color) => {
     name: name,
     color: color,
     tiles: [],
+    win: false,
+  };
+
+  const updateWin = () => {
+    details.win = true;
   };
 
   // add a tile to the player's tile array
@@ -109,13 +221,7 @@ const Player = (name, color) => {
     details.tiles.push(tile);
   };
 
-  return { details, addTile };
+  return { details, addTile, updateWin };
 };
 
 GameBoard.createBoard();
-
-const newPlayer = Player("asdf", "red");
-
-newPlayer.addTile();
-console.log(newPlayer.details.tiles);
-console.log(Controller.checkWin([3, 5, 7]));
