@@ -9,25 +9,27 @@
   </head>
   <body>
     <div class="setup-container">
-      <p>Select a game mode</p>
+      <p class="header-text">Select a game mode</p>
       <select class="game-type">
         <option>Two Player</option>
-        <option>Solo Play</option>
+        <option>Solo Play(in progress)</option>
       </select>
-      <p>Enter names and colors</p>
+      <p class="header-text">Enter names and colors</p>
       <div class="p1">
-        <input type="text" id="playerOne" value="Player One" />
-        <input type="color" id="playerOneColor" value="#5aff15" />
+        <input class="text" type="text" id="playerOne" value="Player One" />
+        <input class="color" type="color" id="playerOneColor" value="#5aff15" />
       </div>
       <div class="p2">
-        <input type="text" id="playerTwo" value="Player Two" />
-        <input type="color" id="playerTwoColor" value="#9d75cb" />
+        <input class="text" type="text" id="playerTwo" value="Player Two" />
+        <input class="color" type="color" id="playerTwoColor" value="#9d75cb" />
       </div>
-      <button class="start">Start</button>
+      <button class="start">Start Game!</button>
     </div>
-    <div class="board-container"></div>
-    <p class="current-turn"></p>
-    <p class="winner"></p>
+    <div class="board-wrapper">
+      <div class="display-text"></div>
+      <div class="board-container"></div>
+      <div class="reset">Reset</div>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>

@@ -4,26 +4,67 @@ body {
   justify-content: center;
   align-items: center;
   font-family: "Courier New", Courier, monospace;
-  color: #feefe5;
+  color: #fae8eb;
   background-color: #253237;
 }
 
+.board-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 8px ridge #fae8eb;
+  border-radius: 8px;
+  margin-top: 25px;
+}
+
+.display-text {
+  background-color: #9d75cb;
+  text-align: center;
+  color: #fae8eb;
+  width: 100%;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-weight: bolder;
+  font-style: oblique;
+  font-stretch: expanded;
+  font-size: 20px;
+  border-bottom: 4px ridge #fae8eb;
+}
+
+.reset {
+  width: 100%;
+  color: #253237;
+  font-weight: bolder;
+  font-style: oblique;
+  font-stretch: expanded;
+  font-size: 20px;
+  background-color: #5aff15;
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 4px ridge #fae8eb;
+}
+
+.reset:hover {
+  opacity: 75%;
+  cursor: pointer;
+}
+
 .board-container {
-  height: 500px;
-  width: 500px;
-  margin: 100px;
+  max-height: 750px;
+  max-width: 750px;
+  flex: 1 1 0;
   padding: 25px;
   display: grid;
   grid-gap: 5px;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   background-color: #fae8eb;
-  border-radius: 10px;
-  border: 8px ridge #fae8eb;
 }
 
 .box {
-  border: 2px ridge #06bee1;
+  border: 3px solid #06bee1;
   font-size: 50px;
   padding: 50px;
   text-align: center;
@@ -33,6 +74,66 @@ body {
 
 .box:hover {
   opacity: 75%;
+}
+
+.setup-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #fae8eb;
+  margin: 100px;
+  padding: 25px;
+  color: #253237;
+  border-radius: 10px;
+  border: 5px ridge #fae8eb;
+}
+
+.header-text {
+  font-weight: bolder;
+  font-style: oblique;
+  font-stretch: expanded;
+  padding: 5px;
+}
+
+.p1 {
+  display: flex;
+  padding-bottom: 5px;
+}
+
+.p2 {
+  display: flex;
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+.text {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border: 1px solid #253237;
+}
+.color {
+  border: 1px solid #253237;
+}
+
+.game-type {
+  color: #253237;
+  border-radius: 4px;
+}
+
+.start {
+  border-radius: 5px;
+  border: 1px ridge #253237;
+  background-color: #06bee1;
+  color: #fae8eb;
+  height: 50px;
+  font-weight: bolder;
+  font-style: oblique;
+  font-stretch: expanded;
+  font-size: 20px;
+}
+
+.start:hover {
+  opacity: 75%;
+  cursor: pointer;
 }
 
 @keyframes error {
@@ -59,12 +160,4 @@ body {
 .wiggle-box {
   animation-name: error;
   animation-duration: 0.35s;
-}
-
-.one-box {
-  background-color: #5aff15;
-}
-
-.two-box {
-  background-color: #9d75cb;
 }

@@ -3,11 +3,12 @@ const GameBoard = (() => {
   // set default board color to a variable
   const defaultColor = "#06bee1";
   // set variable for start button, setup, current turn, and board containers
+  const boardWrapperEl = document.querySelector(".board-wrapper");
   const boardContainerEl = document.querySelector(".board-container");
   const startBtnEl = document.querySelector(".start");
   const setUpEl = document.querySelector(".setup-container");
-  const currentTurnEl = document.querySelector(".current-turn");
-  const winnerEl = document.querySelector(".winner");
+  const displayTextEl = document.querySelector(".display-text");
+  const resetEl = document.querySelector(".reset");
   // GameBoard will handle creating, and updating the display
   // will need to take info from the player and controller
   let tiles = [];
@@ -28,8 +29,9 @@ const GameBoard = (() => {
     element.style.display = displayType;
   };
   // hide the board on page load
+  hideElement(boardWrapperEl);
   hideElement(boardContainerEl);
-  hideElement(currentTurnEl);
+
   // create new players
   startBtnEl.addEventListener("click", () => {
     // create new players from the input form
@@ -48,8 +50,8 @@ const GameBoard = (() => {
 
     // close the set up window and display the gameboard
     hideElement(setUpEl);
+    showElement(boardWrapperEl, "flex");
     showElement(boardContainerEl, "grid");
-    showElement(currentTurnEl, "block");
 
     // set the turn to the first player
     Controller.setTurn(Controller.playersArr[0].details.name);
@@ -71,13 +73,12 @@ const GameBoard = (() => {
 
   // update displayed turn
   const updateTurn = (name) => {
-    currentTurnEl.textContent = `${name}'s turn`;
+    displayTextEl.textContent = `${name}'s turn`;
   };
 
   // display winner
   const displayWinner = (name) => {
-    winnerEl.textContent = `${name} has won!`;
-    hideElement(currentTurnEl);
+    displayTextEl.textContent = `${name} has won!`;
   };
 
   // check for draw
@@ -96,7 +97,7 @@ const GameBoard = (() => {
   // display draw
   const displayDraw = () => {
     Controller.draw = true;
-    currentTurnEl.textContent = "The game ended in a draw!";
+    displayTextEl.textContent = "The game ended in a draw!";
   };
   // reset game
 
