@@ -77,9 +77,14 @@ const GameBoard = (() => {
     showElement(boardWrapperEl, "flex");
     showElement(boardContainerEl, "grid");
 
-    // set the turn to the first player
-    Controller.setTurn(Controller.playersArr[0].details.name);
-    updateTurn(Controller.playersArr[0].details.name);
+    // determine who gets the first turn
+    if (Controller.rng(2) === 0) {
+      Controller.setTurn(Controller.playersArr[0].details.name);
+      updateTurn(Controller.playersArr[0].details.name);
+    } else {
+      Controller.setTurn(Controller.playersArr[1].details.name);
+      updateTurn(Controller.playersArr[1].details.name);
+    }
   });
 
   // ---------------------- All board update functionality below ---------------------------------
@@ -129,7 +134,16 @@ const GameBoard = (() => {
   const resetBoard = (playerOne, playerTwo) => {
     // reset controller game state
     Controller.reset(playerOne, playerTwo);
-    updateTurn(playerOne.details.name);
+
+    // use rng to determine who gets the first turn after reset
+    if (Controller.rng(2) === 0) {
+      Controller.setTurn(playerOne.details.name);
+      updateTurn(playerOne.details.name);
+    } else {
+      Controller.setTurn(playerTwo.details.name);
+      updateTurn(playerTwo.details.name);
+    }
+
     // set all tiles to default color
     const tiles = document.querySelectorAll(".box");
     // set all tiles to played state 'no'
@@ -266,6 +280,11 @@ const Controller = (() => {
   let turns = 0;
   let draw = false;
 
+  // random number generator
+  const rng = (numbers) => {
+    return Math.floor(Math.random() * numbers);
+  };
+
   const reset = (playerOne, playerTwo) => {
     Controller.turns = 0;
     Controller.draw = false;
@@ -322,7 +341,16 @@ const Controller = (() => {
     return result;
   };
 
-  return { checkWin, setTurn, currentTurn, playersArr, turns, draw, reset };
+  return {
+    checkWin,
+    setTurn,
+    currentTurn,
+    playersArr,
+    turns,
+    draw,
+    reset,
+    rng,
+  };
 })();
 
 // --------------------------------------------------------------------------------
