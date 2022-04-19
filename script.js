@@ -143,9 +143,15 @@ const GameBoard = (() => {
     resetBoard(Controller.playersArr[0], Controller.playersArr[1]);
   });
 
-  // back to start
+  // back to the setup page
   const backHome = () => {
-    document.location.href = "/";
+    // reset the board
+    resetBoard(Controller.playersArr[0], Controller.playersArr[0]);
+    // clear out the players
+    Controller.playersArr = [];
+    // hide the board and show the setup
+    hideElement(boardWrapperEl);
+    showElement(setUpEl, "flex");
   };
 
   homeEl.addEventListener("click", () => {
@@ -263,10 +269,13 @@ const Controller = (() => {
   const reset = (playerOne, playerTwo) => {
     Controller.turns = 0;
     Controller.draw = false;
+
     playerOne.details.tiles = [];
     playerOne.details.win = false;
+
     playerTwo.details.tiles = [];
     playerTwo.details.win = false;
+
     Controller.currentTurn = playerOne.details.name;
   };
 
