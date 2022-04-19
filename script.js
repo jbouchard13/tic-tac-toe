@@ -1,3 +1,6 @@
+// ------------------------------------------------------------------------------------------
+// --------------------------------- Gameboard functionality module -------------------------
+// ------------------------------------------------------------------------------------------
 // create a module for the gameboard
 const GameBoard = (() => {
   // set default board color to a variable
@@ -9,6 +12,10 @@ const GameBoard = (() => {
   const setUpEl = document.querySelector(".setup-container");
   const displayTextEl = document.querySelector(".display-text");
   const resetEl = document.querySelector(".reset");
+  const homeEl = document.querySelector(".home");
+  const textInputOneEL = document.querySelector("#playerOne");
+  const textInputTwoEL = document.querySelector("#playerTwo");
+
   // GameBoard will handle creating, and updating the display
   // will need to take info from the player and controller
   let tiles = [];
@@ -21,6 +28,8 @@ const GameBoard = (() => {
     });
   }
 
+  // ----------------------- handlers for showing and hiding elements -----------------
+
   const hideElement = (element) => {
     element.style.display = "none";
   };
@@ -28,6 +37,21 @@ const GameBoard = (() => {
   const showElement = (element, displayType) => {
     element.style.display = displayType;
   };
+
+  // ------------------------ start menu functionality -----------------------
+
+  // clear the player name inputs when clicked
+  const clearInputs = (inputEl) => {
+    inputEl.value = "";
+  };
+  textInputOneEL.addEventListener("click", () => {
+    clearInputs(textInputOneEL);
+  });
+
+  textInputTwoEL.addEventListener("click", () => {
+    clearInputs(textInputTwoEL);
+  });
+
   // hide the board on page load
   hideElement(boardWrapperEl);
   hideElement(boardContainerEl);
@@ -57,6 +81,8 @@ const GameBoard = (() => {
     Controller.setTurn(Controller.playersArr[0].details.name);
     updateTurn(Controller.playersArr[0].details.name);
   });
+
+  // ---------------------- All board update functionality below ---------------------------------
 
   // handles removing animations from tiles, takes element, animation, and time in ms
   const removeTileAnimation = (element, animation, time) => {
@@ -100,6 +126,31 @@ const GameBoard = (() => {
     displayTextEl.textContent = "The game ended in a draw!";
   };
   // reset game
+  const resetBoard = (playerOne, playerTwo) => {
+    // reset controller game state
+    Controller.reset(playerOne, playerTwo);
+    updateTurn(playerOne.details.name);
+    // set all tiles to default color
+    const tiles = document.querySelectorAll(".box");
+    // set all tiles to played state 'no'
+    tiles.forEach((tile) => {
+      tile.dataset.played = "no";
+      tile.style.backgroundColor = defaultColor;
+    });
+  };
+
+  resetEl.addEventListener("click", () => {
+    resetBoard(Controller.playersArr[0], Controller.playersArr[1]);
+  });
+
+  // back to start
+  const backHome = () => {
+    document.location.href = "/";
+  };
+
+  homeEl.addEventListener("click", () => {
+    backHome();
+  });
 
   // create the tiles and append them to the page
   const createBoard = () => {
@@ -113,7 +164,7 @@ const GameBoard = (() => {
       tileEl.dataset.played = "no";
 
       // add click even that will fire off the animation to the tiles
-      tileEl.addEventListener("click", (e) => {
+      tileEl.addEventListener("click", () => {
         const playerOne = Controller.playersArr[0];
         const playerTwo = Controller.playersArr[1];
 
@@ -195,17 +246,12 @@ const GameBoard = (() => {
     });
   };
 
-  // update the board when clicked
-  // clear the board
-  const clearBoard = () => {
-    // reset the color of each tile
-    tiles.forEach((tile) => {
-      tile.style.backgroundColor = "black";
-    });
-  };
   return { createBoard };
 })();
 
+// ----------------------------------------------------------------------------------
+// ---------------------- Game controller module ------------------------------------
+// ----------------------------------------------------------------------------------
 // create a module for game controls
 const Controller = (() => {
   // create an array to contain players
@@ -213,6 +259,16 @@ const Controller = (() => {
   // create variables to contain the amount of turns taken to handle draw scenarios
   let turns = 0;
   let draw = false;
+
+  const reset = (playerOne, playerTwo) => {
+    Controller.turns = 0;
+    Controller.draw = false;
+    playerOne.details.tiles = [];
+    playerOne.details.win = false;
+    playerTwo.details.tiles = [];
+    playerTwo.details.win = false;
+    Controller.currentTurn = playerOne.details.name;
+  };
 
   // array of combinations to win
   const winConditions = [
@@ -257,9 +313,12 @@ const Controller = (() => {
     return result;
   };
 
-  return { checkWin, setTurn, currentTurn, playersArr, turns, draw };
+  return { checkWin, setTurn, currentTurn, playersArr, turns, draw, reset };
 })();
 
+// --------------------------------------------------------------------------------
+// ----------------------- Player creation factory --------------------------------
+// --------------------------------------------------------------------------------
 // create a factory for player objects
 const Player = (name, color) => {
   // object to hold player details and which tiles they chose
