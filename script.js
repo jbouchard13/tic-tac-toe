@@ -31,14 +31,15 @@ const GameBoard = (() => {
 
   const getOpenTiles = () => {
     // get all tiles, find the ones that haven't been played, return their id's as integers
-    let notPlayed = Array.from(document.querySelectorAll(".box")).map(
+    let notPlayed = Array.from(document.querySelectorAll(".box")).filter(
       (tile) => {
-        if (tile.dataset.played === "no") {
-          return parseInt(tile.id);
-        }
+        return tile.dataset.played === "no";
       }
     );
-    return notPlayed;
+    let notPlayedIds = notPlayed.map((tile) => {
+      return parseInt(tile.id);
+    });
+    return notPlayedIds;
   };
 
   // ----------------------- handlers for showing and hiding elements -----------------
@@ -117,6 +118,7 @@ const GameBoard = (() => {
     } else {
       Controller.setTurn(playerTwo.details.name);
       updateTurn(playerTwo.details.name);
+      playCPUturn();
     }
 
     // set all tiles to default color
@@ -137,6 +139,17 @@ const GameBoard = (() => {
     // hide the board and show the setup
     hideElement(boardWrapperEl);
     showElement(setUpEl, "flex");
+  };
+
+  const playCPUturn = () => {
+    if (Controller.currentTurn === "CPU") {
+      const tileId = CPU.pickCPUTile();
+      const tile = document.getElementById(tileId);
+      updateTileColor(tile, CPU.details.color);
+      updateTurn(Controller.playersArr[0].details.name);
+      Controller.setTurn(Controller.playersArr[0].details.name);
+      return;
+    }
   };
 
   // create the tiles and append them to the page
@@ -199,6 +212,7 @@ const GameBoard = (() => {
             displayWinner(playerOne.details.name);
             // end game
           }
+          playCPUturn();
         }
 
         // if player two turn, push the tile to their array
@@ -246,16 +260,23 @@ const GameBoard = (() => {
 
   // start the game and create new players
   startBtnEl.addEventListener("click", () => {
+    // determine if it's one or two players
     // create new players from the input form
     const playerOne = Player(
       document.querySelector("#playerOne").value,
       document.querySelector("#playerOneColor").value
     );
 
-    const playerTwo = Player(
-      document.querySelector("#playerTwo").value,
-      document.querySelector("#playerTwoColor").value
-    );
+    let playerTwo;
+
+    if (gameTypeEl.value === "Two Player") {
+      playerTwo = Player(
+        document.querySelector("#playerTwo").value,
+        document.querySelector("#playerTwoColor").value
+      );
+    } else {
+      playerTwo = CPU;
+    }
 
     // push those players to the Controller to handle gameplay
     Controller.playersArr.push(playerOne, playerTwo);
@@ -272,6 +293,9 @@ const GameBoard = (() => {
     } else {
       Controller.setTurn(Controller.playersArr[1].details.name);
       updateTurn(Controller.playersArr[1].details.name);
+    }
+    if (Controller.currentTurn === "CPU") {
+      playCPUturn();
     }
   });
 
@@ -406,24 +430,26 @@ const Controller = (() => {
 // -------------------------- functionality for handling CPU plays --------------------------------
 const CPU = (() => {
   // create the CPU as a player from the Player factory
-  const { details, addTile, updateWin } = Player("CPU", "");
+  const { details, addTile, updateWin } = Player("CPU", "#253237");
 
   // generate a random number from the leftover tiles array and let the CPU choose that tile on their turn
   const pickCPUTile = () => {
     const tilesAvailable = GameBoard.getOpenTiles();
-    let pick;
-    // iterate over the tiles until a valid turn number is picked
-    do {
-      pick = Controller.RNG(9);
-      if (tilesAvailable.includes(pick) === true) {
-        return pick;
-      }
-    } while (tilesAvailable.includes(pick) === false);
+    if (tilesAvailable.length === 0) {
+      return;
+    } else {
+      let pick;
+      // iterate over the tiles until a valid turn number is picked
+      do {
+        pick = Controller.RNG(9);
+        if (tilesAvailable.includes(pick) === true) {
+          return pick;
+        }
+      } while (tilesAvailable.includes(pick) === false);
+    }
   };
 
   return { details, addTile, updateWin, pickCPUTile };
 })();
 
 GameBoard.createBoard();
-
-console.log(CPU.pickCPUTile());
