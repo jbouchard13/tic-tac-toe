@@ -15,6 +15,7 @@ const GameBoard = (() => {
   const homeEl = document.querySelector(".home");
   const textInputOneEL = document.querySelector("#playerOne");
   const textInputTwoEL = document.querySelector("#playerTwo");
+  const gameTypeEl = document.querySelector(".game-type");
 
   // GameBoard will handle creating, and updating the display
   // will need to take info from the player and controller
@@ -28,6 +29,18 @@ const GameBoard = (() => {
     });
   }
 
+  const getOpenTiles = () => {
+    // get all tiles, find the ones that haven't been played, return their id's as integers
+    let notPlayed = Array.from(document.querySelectorAll(".box")).map(
+      (tile) => {
+        if (tile.dataset.played === "no") {
+          return parseInt(tile.id);
+        }
+      }
+    );
+    return notPlayed;
+  };
+
   // ----------------------- handlers for showing and hiding elements -----------------
 
   const hideElement = (element) => {
@@ -38,54 +51,16 @@ const GameBoard = (() => {
     element.style.display = displayType;
   };
 
+  // hide the board on page load
+  hideElement(boardWrapperEl);
+  hideElement(boardContainerEl);
+
   // ------------------------ start menu functionality -----------------------
 
   // clear the player name inputs when clicked
   const clearInputs = (inputEl) => {
     inputEl.value = "";
   };
-  textInputOneEL.addEventListener("click", () => {
-    clearInputs(textInputOneEL);
-  });
-
-  textInputTwoEL.addEventListener("click", () => {
-    clearInputs(textInputTwoEL);
-  });
-
-  // hide the board on page load
-  hideElement(boardWrapperEl);
-  hideElement(boardContainerEl);
-
-  // create new players
-  startBtnEl.addEventListener("click", () => {
-    // create new players from the input form
-    const playerOne = Player(
-      document.querySelector("#playerOne").value,
-      document.querySelector("#playerOneColor").value
-    );
-
-    const playerTwo = Player(
-      document.querySelector("#playerTwo").value,
-      document.querySelector("#playerTwoColor").value
-    );
-
-    // push those players to the Controller to handle gameplay
-    Controller.playersArr.push(playerOne, playerTwo);
-
-    // close the set up window and display the gameboard
-    hideElement(setUpEl);
-    showElement(boardWrapperEl, "flex");
-    showElement(boardContainerEl, "grid");
-
-    // determine who gets the first turn
-    if (Controller.rng(2) === 0) {
-      Controller.setTurn(Controller.playersArr[0].details.name);
-      updateTurn(Controller.playersArr[0].details.name);
-    } else {
-      Controller.setTurn(Controller.playersArr[1].details.name);
-      updateTurn(Controller.playersArr[1].details.name);
-    }
-  });
 
   // ---------------------- All board update functionality below ---------------------------------
 
@@ -135,8 +110,8 @@ const GameBoard = (() => {
     // reset controller game state
     Controller.reset(playerOne, playerTwo);
 
-    // use rng to determine who gets the first turn after reset
-    if (Controller.rng(2) === 0) {
+    // use RNG to determine who gets the first turn after reset
+    if (Controller.RNG(2) === 0) {
       Controller.setTurn(playerOne.details.name);
       updateTurn(playerOne.details.name);
     } else {
@@ -153,10 +128,6 @@ const GameBoard = (() => {
     });
   };
 
-  resetEl.addEventListener("click", () => {
-    resetBoard(Controller.playersArr[0], Controller.playersArr[1]);
-  });
-
   // back to the setup page
   const backHome = () => {
     // reset the board
@@ -167,10 +138,6 @@ const GameBoard = (() => {
     hideElement(boardWrapperEl);
     showElement(setUpEl, "flex");
   };
-
-  homeEl.addEventListener("click", () => {
-    backHome();
-  });
 
   // create the tiles and append them to the page
   const createBoard = () => {
@@ -266,8 +233,91 @@ const GameBoard = (() => {
     });
   };
 
-  return { createBoard };
+  // ---------- Event Listeners -------------------------
+
+  // clear out inputs when clicked on
+  textInputOneEL.addEventListener("click", () => {
+    clearInputs(textInputOneEL);
+  });
+
+  textInputTwoEL.addEventListener("click", () => {
+    clearInputs(textInputTwoEL);
+  });
+
+  // start the game and create new players
+  startBtnEl.addEventListener("click", () => {
+    // create new players from the input form
+    const playerOne = Player(
+      document.querySelector("#playerOne").value,
+      document.querySelector("#playerOneColor").value
+    );
+
+    const playerTwo = Player(
+      document.querySelector("#playerTwo").value,
+      document.querySelector("#playerTwoColor").value
+    );
+
+    // push those players to the Controller to handle gameplay
+    Controller.playersArr.push(playerOne, playerTwo);
+
+    // close the set up window and display the gameboard
+    hideElement(setUpEl);
+    showElement(boardWrapperEl, "flex");
+    showElement(boardContainerEl, "grid");
+
+    // determine who gets the first turn
+    if (Controller.RNG(2) === 0) {
+      Controller.setTurn(Controller.playersArr[0].details.name);
+      updateTurn(Controller.playersArr[0].details.name);
+    } else {
+      Controller.setTurn(Controller.playersArr[1].details.name);
+      updateTurn(Controller.playersArr[1].details.name);
+    }
+  });
+
+  // reset the game when clicked
+  resetEl.addEventListener("click", () => {
+    resetBoard(Controller.playersArr[0], Controller.playersArr[1]);
+  });
+
+  // take the user back to the home page when clicked
+  homeEl.addEventListener("click", () => {
+    backHome();
+  });
+
+  // handle displaying or hiding 2P input
+  gameTypeEl.addEventListener("change", () => {
+    let p2El = document.querySelector(".p2");
+    p2El.classList.toggle("hide");
+  });
+
+  return { createBoard, getOpenTiles };
 })();
+
+// --------------------------------------------------------------------------------
+// ----------------------- Player creation factory --------------------------------
+// --------------------------------------------------------------------------------
+// create a factory for player objects
+const Player = (name, color) => {
+  // object to hold player details and which tiles they chose
+  const details = {
+    name: name,
+    color: color,
+    tiles: [],
+    win: false,
+  };
+
+  const updateWin = () => {
+    details.win = true;
+  };
+
+  // add a tile to the player's tile array
+  const addTile = (tile) => {
+    details.tiles.push(tile);
+  };
+
+  return { details, addTile, updateWin };
+};
 
 // ----------------------------------------------------------------------------------
 // ---------------------- Game controller module ------------------------------------
@@ -279,24 +329,6 @@ const Controller = (() => {
   // create variables to contain the amount of turns taken to handle draw scenarios
   let turns = 0;
   let draw = false;
-
-  // random number generator
-  const rng = (numbers) => {
-    return Math.floor(Math.random() * numbers);
-  };
-
-  const reset = (playerOne, playerTwo) => {
-    Controller.turns = 0;
-    Controller.draw = false;
-
-    playerOne.details.tiles = [];
-    playerOne.details.win = false;
-
-    playerTwo.details.tiles = [];
-    playerTwo.details.win = false;
-
-    Controller.currentTurn = playerOne.details.name;
-  };
 
   // array of combinations to win
   const winConditions = [
@@ -317,6 +349,24 @@ const Controller = (() => {
   // control which player is choosing
   const setTurn = (playerName) => {
     Controller.currentTurn = playerName;
+  };
+
+  // random number generator
+  const RNG = (numbers) => {
+    return Math.floor(Math.random() * numbers);
+  };
+
+  const reset = (playerOne, playerTwo) => {
+    Controller.turns = 0;
+    Controller.draw = false;
+
+    playerOne.details.tiles = [];
+    playerOne.details.win = false;
+
+    playerTwo.details.tiles = [];
+    playerTwo.details.win = false;
+
+    Controller.currentTurn = playerOne.details.name;
   };
 
   // handles checking each individual win condition and returns a boolean
@@ -349,33 +399,31 @@ const Controller = (() => {
     turns,
     draw,
     reset,
-    rng,
+    RNG,
   };
 })();
 
-// --------------------------------------------------------------------------------
-// ----------------------- Player creation factory --------------------------------
-// --------------------------------------------------------------------------------
-// create a factory for player objects
-const Player = (name, color) => {
-  // object to hold player details and which tiles they chose
-  const details = {
-    name: name,
-    color: color,
-    tiles: [],
-    win: false,
+// -------------------------- functionality for handling CPU plays --------------------------------
+const CPU = (() => {
+  // create the CPU as a player from the Player factory
+  const { details, addTile, updateWin } = Player("CPU", "");
+
+  // generate a random number from the leftover tiles array and let the CPU choose that tile on their turn
+  const pickCPUTile = () => {
+    const tilesAvailable = GameBoard.getOpenTiles();
+    let pick;
+    // iterate over the tiles until a valid turn number is picked
+    do {
+      pick = Controller.RNG(9);
+      if (tilesAvailable.includes(pick) === true) {
+        return pick;
+      }
+    } while (tilesAvailable.includes(pick) === false);
   };
 
-  const updateWin = () => {
-    details.win = true;
-  };
-
-  // add a tile to the player's tile array
-  const addTile = (tile) => {
-    details.tiles.push(tile);
-  };
-
-  return { details, addTile, updateWin };
-};
+  return { details, addTile, updateWin, pickCPUTile };
+})();
 
 GameBoard.createBoard();
+
+console.log(CPU.pickCPUTile());
