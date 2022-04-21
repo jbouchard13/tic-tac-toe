@@ -118,7 +118,6 @@ const GameBoard = (() => {
     } else {
       Controller.setTurn(playerTwo.details.name);
       updateTurn(playerTwo.details.name);
-      playCPUturn();
     }
 
     // set all tiles to default color
@@ -141,14 +140,45 @@ const GameBoard = (() => {
     showElement(setUpEl, "flex");
   };
 
-  const playCPUturn = () => {
-    if (Controller.currentTurn === "CPU") {
-      const tileId = CPU.pickCPUTile();
-      const tile = document.getElementById(tileId);
-      updateTileColor(tile, CPU.details.color);
-      updateTurn(Controller.playersArr[0].details.name);
-      Controller.setTurn(Controller.playersArr[0].details.name);
+  const playCPUturn = (playerTwo) => {
+    if (Controller.playersArr[0].details.win === true) {
       return;
+    } else {
+      if (Controller.currentTurn === "CPU") {
+        const tileId = CPU.pickCPUTile();
+        const tile = document.getElementById(tileId);
+        // handle animation on box tiles
+        tile.classList.add("wiggle-box");
+
+        // remove animation once it finished firing
+        removeTileAnimation(tile, "wiggle-box", 350);
+
+        // add the tile to the players array
+        playerTwo.addTile(parseInt(tileId));
+        // add a turn
+        Controller.turns++;
+        // update turn and color for the tile
+
+        updateTileColor(tile, "#253237");
+        updateTurn(Controller.playersArr[0].details.name);
+        Controller.setTurn(Controller.playersArr[0].details.name);
+
+        if (
+          Controller.checkWin(Controller.playersArr[1].details.tiles) === true
+        ) {
+          Controller.playersArr[1].updateWin();
+          displayWinner("CPU");
+        } else if (
+          checkDraw(
+            Controller.turns,
+            Controller.playersArr[0],
+            Controller.playersArr[1]
+          ) === true
+        ) {
+          displayDraw();
+          return;
+        } else return;
+      }
     }
   };
 
@@ -167,7 +197,6 @@ const GameBoard = (() => {
       tileEl.addEventListener("click", () => {
         const playerOne = Controller.playersArr[0];
         const playerTwo = Controller.playersArr[1];
-
         // check if a player has won, or if there's a draw if so, don't let any tiles change
         if (
           playerOne.details.win === true ||
@@ -212,7 +241,9 @@ const GameBoard = (() => {
             displayWinner(playerOne.details.name);
             // end game
           }
-          playCPUturn();
+          setTimeout(() => {
+            playCPUturn(Controller.playersArr[1]);
+          }, 200);
         }
 
         // if player two turn, push the tile to their array
@@ -295,13 +326,18 @@ const GameBoard = (() => {
       updateTurn(Controller.playersArr[1].details.name);
     }
     if (Controller.currentTurn === "CPU") {
-      playCPUturn();
+      setTimeout(() => {
+        playCPUturn(Controller.playersArr[1]);
+      }, 200);
     }
   });
 
   // reset the game when clicked
   resetEl.addEventListener("click", () => {
     resetBoard(Controller.playersArr[0], Controller.playersArr[1]);
+    setTimeout(() => {
+      playCPUturn(Controller.playersArr[1]);
+    }, 200);
   });
 
   // take the user back to the home page when clicked
@@ -435,12 +471,17 @@ const CPU = (() => {
   // generate a random number from the leftover tiles array and let the CPU choose that tile on their turn
   const pickCPUTile = () => {
     const tilesAvailable = GameBoard.getOpenTiles();
-    if (tilesAvailable.length === 0) {
+    if (
+      tilesAvailable.length === 0 ||
+      Controller.playersArr[1].details.win === true ||
+      Controller.draw === true
+    ) {
       return;
     } else {
       let pick;
       // iterate over the tiles until a valid turn number is picked
       do {
+        console.log("looping");
         pick = Controller.RNG(9);
         if (tilesAvailable.includes(pick) === true) {
           return pick;
